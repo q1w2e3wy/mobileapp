@@ -56,59 +56,49 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// 버블의 속성을 담는 데이터 클래스
-// --- 데이터 클래스 (단위: dp) ---
+// 버블 속성 데이터 클래스
 data class Bubble(
     val id: Int,
-    val position: Offset, // 위치 (x, y 좌표). dp 단위를 의미.
-    val radius: Float,    // 반지름. dp 단위를 의미.
+    val position: Offset,
+    val radius: Float,
     val color: Color,
     val creationTime: Long = System.currentTimeMillis(),
-    val velocityX: Float = Random.nextFloat() * 8 - 4, // 초당 dp 이동 속도
-    val velocityY: Float = Random.nextFloat() * 8 - 4  // 초당 dp 이동 속도
+    val velocityX: Float = Random.nextFloat() * 8 - 4,
+    val velocityY: Float = Random.nextFloat() * 8 - 4
 )
 
 class GameState(initialBubbles: List<Bubble> = emptyList()) {
     var bubbles by mutableStateOf(initialBubbles)
     var score by mutableStateOf(0)
     var isGameOver by mutableStateOf(false)
-    var timeLeft by mutableStateOf(60) // 남은 시간: 60초로 시작
+    var timeLeft by mutableStateOf(30)
 }
 
-// --- 게임 전체 화면 ---
-
-
-
-// 게임의 전체 화면
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun BubbleGameScreen() {
-    // 1. 게임에 필요한 상태 변수들 선언, 버블 리스트가 빈 채로 시작하면 미리보기에선 안보일 수 있다.
     val gameState: GameState = remember { GameState() }
 
-    // 2. 타이머 로직
+    // 타이머
     LaunchedEffect(gameState.isGameOver) {
-        // 게임이 진행 중일 때만 타이머 작동
         if (!gameState.isGameOver && gameState.timeLeft > 0) {
             while (true) {
-                delay(1000L) // 1초 대기
-                gameState.timeLeft-- // 시간 1초 감소
+                delay(1000L)
+                gameState.timeLeft--
                 if (gameState.timeLeft == 0) {
-                    gameState.isGameOver = true // 시간이 0이 되면 게임 오버
+                    gameState.isGameOver = true
                     break
                 }
-                // 3초가 지난 버블 제거
                 val currentTime = System.currentTimeMillis()
-                gameState.bubbles = gameState.bubbles.filter { // filter()는 원본 리스트를 변경하지 않고 새 리스트 생성
+                gameState.bubbles = gameState.bubbles.filter {
                     currentTime - it.creationTime < 3000
                 }
             }
         }
     }
 
-    // 3. 버블의 상태를 관리
     Column(modifier = Modifier.fillMaxSize()) {
-        // 3-1. 상단 상태 바 UI (점수, 남은 시간)
+        // 상단 점수/시간
         GameStatusRow(score = gameState.score, timeLeft = gameState.timeLeft)
 
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -116,34 +106,34 @@ fun BubbleGameScreen() {
             val canvasWidthPx = with(density) { maxWidth.toPx() }
             val canvasHeightPx = with(density) { maxHeight.toPx() }
 
-            // 3-2. 버블 물리 엔진
-            LaunchedEffect(key1 = gameState.isGameOver) {
+            // 버블 생성/이동 로직
+            LaunchedEffect(gameState.isGameOver) {
                 if (!gameState.isGameOver) {
                     while (true) {
                         delay(16)
 
-                        // 버블이 없으면 3개를 새로 생성합니다.
+                        // 버블 없으면 생성
                         if (gameState.bubbles.isEmpty()) {
-                            val newBubbles = List(3) { // 3개의 버블 생성
+                            val newBubbles = List(3) {
                                 Bubble(
                                     id = Random.nextInt(),
                                     position = Offset(
-                                        x = Random.nextFloat() * maxWidth.value, // 위치 단위는 dp
+                                        x = Random.nextFloat() * maxWidth.value,
                                         y = Random.nextFloat() * maxHeight.value
                                     ),
-                                    radius = Random.nextFloat() * 25 + 25, // 반지름 단위는 dp
+                                    radius = Random.nextFloat() * 25 + 25,
                                     color = Color(Random.nextInt(256), Random.nextInt(256), Random.nextInt(256), 200)
                                 )
                             }
-                            gameState.bubbles = newBubbles // 생성된 버블 리스트로 교체
+                            gameState.bubbles = newBubbles
                         }
 
-                        // 새 버블 생성 (랜덤)
+                        // 랜덤 추가 생성
                         if (Random.nextFloat() < 0.05f && gameState.bubbles.size < 15) {
                             val newBubble = Bubble(
                                 id = Random.nextInt(),
                                 position = Offset(
-                                    x = Random.nextFloat() * maxWidth.value, // 위치 단위는 dp
+                                    x = Random.nextFloat() * maxWidth.value,
                                     y = Random.nextFloat() * maxHeight.value
                                 ),
                                 radius = Random.nextFloat() * 50 + 50,
@@ -157,32 +147,24 @@ fun BubbleGameScreen() {
                             gameState.bubbles = gameState.bubbles + newBubble
                         }
 
-                        // 기존 물리 엔진 로직 (버블 이동)
+                        // 버블 이동
                         gameState.bubbles = gameState.bubbles.map { bubble ->
-                            // ✅ with(density) 블록으로 전체 계산 과정을 감싸줍니다.
-                            // 이 블록 안에서는 .toPx()와 .toDp()를 바로 사용할 수 있습니다.
                             with(density) {
-                                // --- 1. 모든 dp 값을 px로 변환 (코드가 훨씬 짧아짐) ---
                                 val radiusPx = bubble.radius.dp.toPx()
                                 var xPx = bubble.position.x.dp.toPx()
                                 var yPx = bubble.position.y.dp.toPx()
                                 val vxPx = bubble.velocityX.dp.toPx()
                                 val vyPx = bubble.velocityY.dp.toPx()
 
-                                // --- 2. px 단위로 물리 계산 수행 (기존과 동일) ---
                                 xPx += vxPx
                                 yPx += vyPx
-
                                 var newVx = bubble.velocityX
                                 var newVy = bubble.velocityY
-
                                 if (xPx < radiusPx || xPx > canvasWidthPx - radiusPx) newVx *= -1
                                 if (yPx < radiusPx || yPx > canvasHeightPx - radiusPx) newVy *= -1
-
                                 xPx = xPx.coerceIn(radiusPx, canvasWidthPx - radiusPx)
                                 yPx = yPx.coerceIn(radiusPx, canvasHeightPx - radiusPx)
 
-                                // --- 3. 계산 완료 후, 결과를 다시 dp로 변환하여 저장 ---
                                 bubble.copy(
                                     position = Offset(
                                         x = xPx.toDp().value,
@@ -191,50 +173,57 @@ fun BubbleGameScreen() {
                                     velocityX = newVx,
                                     velocityY = newVy
                                 )
-                            } // `with` 블록의 마지막 표현식(새로운 bubble 객체)이 map의 반환값이 됩니다
+                            }
                         }
                     }
                 }
             }
 
-            // 3-4. 버블 그리기
+            // 버블 그리기
             gameState.bubbles.forEach { bubble ->
                 BubbleComposable(bubble = bubble) {
-                    // 버블 클릭 시 점수 올리고, 해당 버블 제거
                     gameState.score++
                     gameState.bubbles = gameState.bubbles.filterNot { it.id == bubble.id }
                 }
+            }
+
+            // 게임 종료 시 중앙 메시지
+            if (gameState.isGameOver) {
+                val message = if (gameState.score >= 60) "게임 성공 🎉" else "게임 실패 😢"
+                Text(
+                    text = message,
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (gameState.score >= 60) Color.Green else Color.Red,
+                    modifier = Modifier.align(Alignment.Center)
+                )
             }
         }
     }
 }
 
-// 버블 UI를 그리는 Composable
 @Composable
 fun BubbleComposable(bubble: Bubble, onClick: () -> Unit) {
     Canvas(
         modifier = Modifier
             .offset(x = bubble.position.x.dp, y = bubble.position.y.dp)
-            .size((bubble.radius * 2 ).dp)
+            .size((bubble.radius * 2).dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onClick
             )
     ) {
-        // 3. 원은 Canvas의 정가운데에 그립니다. 클릭 영역은 실제로 사각형이다. ㅠㅜ
         drawCircle(
             color = bubble.color,
-            radius = size.width / 2, // / size.width는 이 Canvas의 실제 가로 픽셀(px) 크기를 의미합니다.
+            radius = size.width / 2,
             center = center
         )
     }
 }
 
-
-// 상단 UI를 별도의 Composable로 분리 (가독성 향상)
 @Composable
-fun GameStatusRow(score: Int , timeLeft: Int) {
+fun GameStatusRow(score: Int, timeLeft: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
