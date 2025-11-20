@@ -10,9 +10,12 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/Rename" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/test" />
-            <option value="$PROJECT_DIR$/week3" />
+            <option value="$PROJECT_DIR$/app/ppt" />
+            <option value="$PROJECT_DIR$/match" />
+            <option value="$PROJECT_DIR$/open" />
+            <option value="$PROJECT_DIR$/open/myapplication" />
             <option value="$PROJECT_DIR$/week4" />
             <option value="$PROJECT_DIR$/week5" />
             <option value="$PROJECT_DIR$/week6" />

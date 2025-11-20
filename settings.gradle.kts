@@ -21,8 +21,11 @@ dependencyResolutionManagement {
 
 rootProject.name = "My Application"
 include(":app")
-include(":week3")
+include(":Rename")
 include(":week6")
 include(":week4")
 include(":week5")
-include(":test")
+include(":open")
+include(":app:ppt")
+include(":open:myapplication")
+include(":match")
