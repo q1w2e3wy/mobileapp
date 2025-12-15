@@ -25,6 +25,9 @@ Column과 Row, Box를 조합하여 화면 구성했습니다
 Spacer를 활용하여 요소 간 간격 조절하였습니다.
 
 
+
+
+
 Compose의 remember와 mutableStateOf, mutableStateListOf를 활용해 앱 상태를 저장하였고
 currentDayIndex 는 현재 선택된 요일 그리고 dailyExpenses 는 요일별 지출 리스트
 expenseInput, budgetInput 는 사용자가 입력한 텍스트, weeklyBudget는 설정된 목표 예산을 설정
@@ -32,7 +35,7 @@ showResultScreen, showLargeDay 는  앱 실행 화면과 요일을 확대 표시
 
 
 
-BasicTextField로 사용자 입력을 처리하였고, Button 클릭 시 숫자 여부 검사 
+BasicTextField로 사용자 입력을 처리하였고, Button 클릭 시 숫자 여부를 검사 
 dailyExpenses는 바로 업데이트 할수 있도록 했고
 Toast는 메시지로 입력 확인하게 하였습니다
 
@@ -45,11 +48,17 @@ StyledBarGraph 컴포저블 함수는 최대 지출값 기준으로 각 요일�
 
 결과 화면은 일요일 지출이 입력된 경우 showResultScreen 활성화하여
 Card로 결과 표시하였고
+total로 현재까지의 총 지출을 저장
 총 지출, 목표 예산 대비 초과/절약을 확인, 다시하기 버튼으로 다시 주간 지출 프로그램을 할수있도록 만들었습니다
 
 애니메이션 및 메시지 표시는
 CoroutineScope와 delay를 활용하여 예산 설정 후 체크 표시 메시지를 표시하도록 했습니다
 
+
+이 앱에서 UI는 상태의 결과로 구성되고
+상태는 앱 동작의 기준이 됩니다
+따라서 모든 사용자 상호작용은 상태 변경으로 표현되고,
+UI는 해당 상태를 관찰하여 자동으로 반응하도록 구현하였습니다.
 
 
 - 목표 지출을 맞췄을떄
